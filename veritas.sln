@@ -1,0 +1,22 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "veritas", "veritas\veritas\veritas.csproj", "{03B3300E-4B63-4BFB-AECD-1AC6EBD1887E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "veritas.Client", "veritas\veritas.Client\veritas.Client.csproj", "{07D1FF50-798F-4AC1-BA56-AE7818F5CE81}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{03B3300E-4B63-4BFB-AECD-1AC6EBD1887E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{03B3300E-4B63-4BFB-AECD-1AC6EBD1887E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{03B3300E-4B63-4BFB-AECD-1AC6EBD1887E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{03B3300E-4B63-4BFB-AECD-1AC6EBD1887E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{07D1FF50-798F-4AC1-BA56-AE7818F5CE81}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{07D1FF50-798F-4AC1-BA56-AE7818F5CE81}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{07D1FF50-798F-4AC1-BA56-AE7818F5CE81}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{07D1FF50-798F-4AC1-BA56-AE7818F5CE81}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal

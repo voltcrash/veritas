@@ -1,0 +1,289 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Veritas – Verify News</title>
+  <style>
+    :root {
+      --bg: #000000;
+      --green-deep: #1E5128;
+      --green: #4E9F3D;
+      --sage: #D8E9A8;
+    }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 420px;
+      max-width: 420px;
+      background: var(--bg);
+      color: var(--sage);
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Quicksand", sans-serif;
+    }
+
+    body {
+      padding: 16px 18px 18px;
+      box-sizing: border-box;
+    }
+
+    .tagline {
+      text-align: center;
+      font-size: 13px;
+      letter-spacing: 0.24em;
+      text-transform: uppercase;
+      color: var(--sage);
+      margin: 0 0 12px;
+    }
+
+    .input-card {
+      width: 100%;
+      background: #080808;
+      border: 1px solid var(--green-deep);
+      border-radius: 14px;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.4);
+      overflow: hidden;
+    }
+
+    .input-wrapper {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      padding: 12px 14px;
+      border-bottom: 1px solid #0f1f0f;
+    }
+
+    .input-icon {
+      font-size: 14px;
+      opacity: 0.6;
+      margin-top: 2px;
+    }
+
+    textarea {
+      flex: 1;
+      border: none;
+      outline: none;
+      resize: none;
+      background: transparent;
+      color: var(--sage);
+      font-size: 13px;
+      line-height: 1.5;
+      max-height: 120px;
+    }
+
+    textarea::placeholder {
+      color: #2d4a2d;
+    }
+
+    .input-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 14px 10px;
+      background: #040a04;
+    }
+
+    .char-hint {
+      font-size: 11px;
+      color: #2d4a2d;
+    }
+
+    .analyze-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 14px;
+      border-radius: 999px;
+      border: none;
+      background: linear-gradient(135deg, #1E5128, #4E9F3D);
+      color: var(--sage);
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
+      transition: all 0.25s ease;
+    }
+
+    .analyze-btn:disabled {
+      opacity: 0.4;
+      cursor: default;
+    }
+
+    .analyze-btn::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, #4E9F3D, #D8E9A8);
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+
+    .analyze-btn:not(:disabled):hover::before {
+      opacity: 1;
+    }
+
+    .analyze-btn-text,
+    .analyze-btn-arrow {
+      position: relative;
+      z-index: 1;
+    }
+
+    .analyze-btn-arrow {
+      font-size: 13px;
+      transform: translateX(0);
+      transition: transform 0.2s ease;
+    }
+
+    .analyze-btn:not(:disabled):hover .analyze-btn-arrow {
+      transform: translateX(3px);
+    }
+
+    .result-container {
+      margin-top: 14px;
+      border-radius: 14px;
+      border: 1px solid var(--green-deep);
+      background: #050d05;
+      padding: 12px 14px;
+      display: none;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .result-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .pill {
+      padding: 3px 10px;
+      border-radius: 999px;
+      font-size: 10px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      font-weight: 700;
+      background: #422006;
+      color: #fef3c7;
+    }
+
+    .pill.good {
+      background: #1E5128;
+      color: #D8E9A8;
+    }
+
+    .pill.bad {
+      background: #450a0a;
+      color: #fecaca;
+    }
+
+    .confidence-label {
+      font-size: 10px;
+      color: #4b6b4b;
+    }
+
+    .metric {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      margin-top: 4px;
+    }
+
+    .metric-label {
+      font-size: 10px;
+      color: #4b6b4b;
+    }
+
+    .metric-bar {
+      width: 100%;
+      height: 5px;
+      border-radius: 999px;
+      background: #0f1f0f;
+      overflow: hidden;
+    }
+
+    .metric-bar-fill {
+      height: 100%;
+      border-radius: 999px;
+      background: linear-gradient(90deg, #1E5128, #4E9F3D);
+      box-shadow: 0 0 8px #4E9F3D66;
+      width: 0;
+    }
+
+    .summary {
+      font-size: 12px;
+      color: var(--sage);
+    }
+
+    .reasons, .sources {
+      margin: 0;
+      padding-left: 16px;
+      font-size: 11px;
+      color: #4b6b4b;
+    }
+
+    .sources-title {
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+      margin: 8px 0 3px;
+      color: #1E5128;
+    }
+
+    .sources a {
+      color: var(--green);
+      text-decoration: none;
+    }
+
+    .sources a:hover {
+      color: var(--sage);
+      text-decoration: underline;
+    }
+
+    .error {
+      color: #f97373;
+      font-size: 11px;
+    }
+  </style>
+</head>
+<body>
+  <p class="tagline">Verify any news in seconds</p>
+
+  <div class="input-card">
+    <div class="input-wrapper">
+      <span class="input-icon">📝</span>
+      <textarea id="input" placeholder="Paste a link or type any news to verify..."></textarea>
+    </div>
+    <div class="input-footer">
+      <span class="char-hint"><span id="charCount">0</span> chars</span>
+      <button id="analyzeBtn" class="analyze-btn">
+        <span class="analyze-btn-text">Analyze</span>
+        <span class="analyze-btn-arrow">→</span>
+      </button>
+    </div>
+  </div>
+
+  <div id="result" class="result-container">
+    <div class="result-header">
+      <span id="verdictPill" class="pill">UNCERTAIN</span>
+      <span id="confidenceLabel" class="confidence-label">0% confidence</span>
+    </div>
+    <div class="metric">
+      <span class="metric-label">Confidence</span>
+      <div class="metric-bar">
+        <div id="confidenceBar" class="metric-bar-fill"></div>
+      </div>
+    </div>
+    <p id="summary" class="summary"></p>
+    <ul id="reasons" class="reasons"></ul>
+    <div id="sourcesBlock">
+      <p class="sources-title">Sources checked</p>
+      <ul id="sources" class="sources"></ul>
+    </div>
+    <p id="error" class="error"></p>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>

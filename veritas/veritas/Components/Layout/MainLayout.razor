@@ -1,0 +1,26 @@
+@inherits LayoutComponentBase
+
+<div class="app-shell">
+    <header class="top-navbar">
+        <div class="navbar-inner">
+            <a href="/" class="navbar-logo">
+                <img src="lotus.svg" class="logo-lotus" alt="Veritas lotus" aria-hidden="true" />
+                <span class="logo-text">Veritas</span>
+            </a>
+            <nav class="navbar-links">
+                <a href="/history" class="nav-link-item">History</a>
+                <a href="/detect" class="nav-link-item nav-link-cta">Open Veritas →</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="main-content">
+        @Body
+    </main>
+</div>
+
+<div id="blazor-error-ui" data-nosnippet>
+    An unhandled error has occurred.
+    <a href="." class="reload">Reload</a>
+    <span class="dismiss">🗙</span>
+</div>

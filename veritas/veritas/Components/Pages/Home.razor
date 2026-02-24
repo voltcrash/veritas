@@ -1,0 +1,218 @@
+@page "/detect"
+@rendermode InteractiveServer
+@using veritas.Models
+@inject veritas.Services.GeminiService Gemini
+
+<PageTitle>Veritas — Detect Misinformation</PageTitle>
+
+<div class="home-container">
+    <section class="input-section">
+        <p class="detect-tagline">Verify any news in seconds</p>
+
+        <div class="input-card">
+            <div class="input-wrapper textarea-wrapper">
+                <span class="input-icon textarea-icon">📝</span>
+                <textarea
+                    class="main-textarea"
+                    placeholder="Paste a link or type any news to verify..."
+                    rows="5"
+                    @bind="inputValue"
+                    @bind:event="oninput"></textarea>
+            </div>
+
+            <div class="input-footer">
+                <span class="char-hint">@inputValue.Length chars</span>
+                <button class="analyze-btn" @onclick="AnalyzeAsync" disabled="@(isLoading)">
+                    <span class="analyze-btn-text">@((isLoading ? "Analyzing…" : "Analyze"))</span>
+                    <span class="analyze-btn-arrow">→</span>
+                </button>
+            </div>
+        </div>
+    </section>
+
+    @if (lastResult is not null)
+    {
+        <section class="analysis-section">
+            <h2 class="recent-heading">Latest Verdict</h2>
+
+            <div class="analysis-card @GetVerdictCss(lastResult.Verdict)">
+                <div class="analysis-header">
+                    <span class="analysis-pill">@GetVerdictLabel(lastResult.Verdict)</span>
+                    <span class="analysis-confidence">@($"{lastResult.Confidence:P0}") confidence</span>
+                </div>
+
+                <div class="analysis-metrics">
+                    <div class="metric">
+                        <span class="metric-label">Confidence</span>
+                        <div class="metric-bar">
+                            <div class="metric-bar-fill" style="width:@(Math.Clamp(lastResult.Confidence, 0, 1) * 100)%"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <p class="analysis-summary">@lastResult.Summary</p>
+
+                @if (lastResult.Reasons?.Count > 0)
+                {
+                    <ul class="analysis-reasons">
+                        @foreach (var reason in lastResult.Reasons)
+                        {
+                            <li>@reason</li>
+                        }
+                    </ul>
+                }
+
+                @if (lastResult.Sources?.Count > 0)
+                {
+                    <div class="analysis-sources">
+                        <h3>Sources checked</h3>
+                        <ul>
+                            @foreach (var source in lastResult.Sources)
+                            {
+                                <li>
+                                    @if (!string.IsNullOrWhiteSpace(source.Url))
+                                    {
+                                        <a href="@source.Url" target="_blank" rel="noopener noreferrer">
+                                            @(string.IsNullOrWhiteSpace(source.Name) ? source.Url : source.Name)
+                                        </a>
+                                    }
+                                    else
+                                    {
+                                        @source.Name
+                                    }
+                                </li>
+                            }
+                        </ul>
+                    </div>
+                }
+            </div>
+        </section>
+    }
+
+    @if (recentChecks.Count > 0)
+    {
+        <section class="recent-section">
+            <h2 class="recent-heading">Recent Checks</h2>
+            <div class="recent-list">
+                @foreach (var check in recentChecks)
+                {
+                    <div class="recent-item" @onclick="() => LoadCheck(check)">
+                        <span class="recent-type-badge">@GetVerdictLabel(check.Result.Verdict)</span>
+                        <span class="recent-preview">@check.Preview</span>
+                        <span class="recent-time">@check.TimeAgo</span>
+                    </div>
+                }
+            </div>
+        </section>
+    }
+</div>
+
+@code {
+    private string inputValue = string.Empty;
+    private bool isLoading;
+    private AnalysisResult? lastResult;
+
+    private readonly List<RecentCheck> recentChecks = new();
+
+    private async Task AnalyzeAsync()
+    {
+        if (string.IsNullOrWhiteSpace(inputValue)) return;
+
+        isLoading = true;
+        lastResult = null;
+        StateHasChanged();
+
+        var originalInput = inputValue;
+
+        try
+        {
+            var request = new NewsAnalysisRequest
+            {
+                Mode = "auto",
+                Input = originalInput
+            };
+
+            var result = await Gemini.AnalyzeAsync(request);
+            lastResult = new AnalysisResult
+            {
+                Verdict = result.Verdict,
+                Confidence = result.Confidence,
+                Summary = result.Summary,
+                Reasons = result.Reasons ?? new List<string>(),
+                Sources = result.Sources ?? new List<NewsSource>()
+            };
+        }
+        catch (Exception ex)
+        {
+            lastResult = new AnalysisResult
+            {
+                Verdict = "ERROR",
+                Confidence = 0,
+                Summary = "Unexpected error while verifying this content.",
+                Reasons = new List<string> { ex.Message }
+            };
+        }
+        finally
+        {
+            isLoading = false;
+        }
+
+        if (!string.IsNullOrWhiteSpace(originalInput) && lastResult is not null)
+        {
+            var preview = originalInput.Length > 80
+                ? originalInput[..80] + "…"
+                : originalInput;
+
+            recentChecks.Insert(0, new RecentCheck
+            {
+                Preview = preview,
+                Result = lastResult,
+                TimeAgo = "just now"
+            });
+
+            if (recentChecks.Count > 5)
+                recentChecks.RemoveAt(recentChecks.Count - 1);
+        }
+
+        inputValue = string.Empty;
+    }
+
+    private void LoadCheck(RecentCheck check)
+    {
+        lastResult = check.Result;
+    }
+
+    private class RecentCheck
+    {
+        public string Preview { get; set; } = string.Empty;
+        public AnalysisResult Result { get; set; } = new();
+        public string TimeAgo { get; set; } = string.Empty;
+    }
+
+    private sealed class AnalysisResult
+    {
+        public string Verdict { get; set; } = string.Empty;
+        public double Confidence { get; set; }
+        public string Summary { get; set; } = string.Empty;
+        public List<string> Reasons { get; set; } = new();
+        public List<NewsSource> Sources { get; set; } = new();
+    }
+
+    private static string GetVerdictLabel(string verdict) => verdict?.ToUpperInvariant() switch
+    {
+        "GOOD" => "Good news",
+        "BAD" => "Bad news",
+        "UNCERTAIN" => "Uncertain",
+        "ERROR" => "Error",
+        _ => verdict ?? "Unknown"
+    };
+
+    private static string GetVerdictCss(string verdict) => verdict?.ToUpperInvariant() switch
+    {
+        "GOOD" => "analysis-good",
+        "BAD" => "analysis-bad",
+        "UNCERTAIN" => "analysis-uncertain",
+        "ERROR" => "analysis-error",
+        _ => string.Empty
+    };
+}

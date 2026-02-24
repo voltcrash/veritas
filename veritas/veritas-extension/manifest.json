@@ -1,0 +1,14 @@
+{
+    "manifest_version": 3,
+    "name": "Veritas – News Verifier",
+    "version": "0.1.0",
+    "description": "Send the current page or any text to your Veritas backend to verify news in seconds.",
+    "action": {
+      "default_title": "Verify with Veritas",
+      "default_popup": "popup.html"
+    },
+    "permissions": ["activeTab"],
+    "host_permissions": [
+      "https://localhost:7262/*"
+    ]
+  }
