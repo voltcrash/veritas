@@ -166,6 +166,7 @@
             recentChecks.Insert(0, new RecentCheck
             {
                 Preview = preview,
+                Input = originalInput,
                 Result = lastResult,
                 TimeAgo = "just now"
             });
@@ -180,11 +181,13 @@
     private void LoadCheck(RecentCheck check)
     {
         lastResult = check.Result;
+        inputValue = check.Input;
     }
 
     private class RecentCheck
     {
         public string Preview { get; set; } = string.Empty;
+        public string Input { get; set; } = string.Empty;
         public AnalysisResult Result { get; set; } = new();
         public string TimeAgo { get; set; } = string.Empty;
     }
