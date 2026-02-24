@@ -8,25 +8,34 @@
 <section class="lp-hero">
     <div class="lp-hero-glow"></div>
     <div class="lp-hero-inner">
-        <p class="lp-eyebrow">Powered by AI · Free to use</p>
+        <p class="lp-eyebrow">
+            <span class="lp-eyebrow-dot"></span>
+            Powered by AI · Free to use
+        </p>
         <h1 class="lp-hero-title">
-            Understand <span class="lp-gradient-text">the Truth</span>
+            Understand<br />
+            <span class="lp-gradient-text">the Truth</span>
         </h1>
         <p class="lp-hero-sub">
-            Veritas analyzes articles, links, and claims in seconds —<br class="lp-br"/>
+            Veritas analyzes articles, links, and claims in seconds —
             so you always know what's real.
         </p>
-        <a href="/detect" class="lp-cta-btn">
-            <span>Open Veritas</span>
-            <span class="lp-cta-arrow">→</span>
-        </a>
+        <div class="lp-hero-actions">
+            <a href="/detect" class="lp-cta-btn">
+                <span>Open Veritas</span>
+                <span class="lp-cta-arrow">→</span>
+            </a>
+        </div>
     </div>
+
     <div class="lp-hero-visual">
         <div class="lp-mock-card">
             <div class="lp-mock-header">
-                <span class="lp-mock-dot red"></span>
-                <span class="lp-mock-dot yellow"></span>
-                <span class="lp-mock-dot green"></span>
+                <div class="lp-mock-dots">
+                    <span class="lp-mock-dot red"></span>
+                    <span class="lp-mock-dot yellow"></span>
+                    <span class="lp-mock-dot green"></span>
+                </div>
                 <span class="lp-mock-url">veritas.app/detect</span>
             </div>
             <div class="lp-mock-body">
@@ -42,17 +51,23 @@
                     <div class="lp-mock-bars">
                         <div class="lp-bar-row">
                             <span class="lp-bar-label">Credibility</span>
-                            <div class="lp-bar-track"><div class="lp-bar-fill" style="width: 22%"></div></div>
+                            <div class="lp-bar-track">
+                                <div class="lp-bar-fill" style="width: 22%"></div>
+                            </div>
                             <span class="lp-bar-val red-val">22%</span>
                         </div>
                         <div class="lp-bar-row">
                             <span class="lp-bar-label">Source Trust</span>
-                            <div class="lp-bar-track"><div class="lp-bar-fill amber" style="width: 45%"></div></div>
+                            <div class="lp-bar-track">
+                                <div class="lp-bar-fill amber" style="width: 45%"></div>
+                            </div>
                             <span class="lp-bar-val amber-val">45%</span>
                         </div>
                         <div class="lp-bar-row">
                             <span class="lp-bar-label">Fact Match</span>
-                            <div class="lp-bar-track"><div class="lp-bar-fill" style="width: 18%"></div></div>
+                            <div class="lp-bar-track">
+                                <div class="lp-bar-fill" style="width: 18%"></div>
+                            </div>
                             <span class="lp-bar-val red-val">18%</span>
                         </div>
                     </div>
@@ -63,24 +78,7 @@
 </section>
 
 <!-- ═══════════════════════════════════════════
-     LOTUS BLOOM  — content emerges from lotus
-═══════════════════════════════════════════ -->
-<section class="lp-bloom-section">
-    <div class="lp-bloom-sticky">
-        <div class="lp-bloom-lotus" aria-hidden="true">
-            <img src="lotus.svg" class="lp-bloom-lotus-img" alt="" />
-        </div>
-        <div class="lp-bloom-reveal">
-            <div class="lp-section-label">
-                <p>Your AI-Powered Truth Partner</p>
-            </div>
-            <p class="lp-bloom-tagline">Truth, illuminated</p>
-        </div>
-    </div>
-</section>
-
-<!-- ═══════════════════════════════════════════
-     FEATURES  (alternating text + visual)
+     FEATURES
 ═══════════════════════════════════════════ -->
 <section class="lp-features">
 
@@ -90,6 +88,7 @@
             <div class="lp-feature-icon-wrap">
                 <span class="lp-feature-icon">🔗</span>
             </div>
+            <span class="lp-feature-tag">Link Analysis</span>
             <h2 class="lp-feature-title">Paste any link, get the truth</h2>
             <p class="lp-feature-desc">
                 Drop in a URL from any news site, social post, or blog.
@@ -121,6 +120,7 @@
             <div class="lp-feature-icon-wrap">
                 <span class="lp-feature-icon">📝</span>
             </div>
+            <span class="lp-feature-tag">Claim Checking</span>
             <h2 class="lp-feature-title">Verify any claim instantly</h2>
             <p class="lp-feature-desc">
                 Heard something suspicious? Type or paste any statement,
@@ -132,12 +132,18 @@
             <div class="lp-vis-card text-card">
                 <div class="lp-vis-claim-box">
                     <span class="lp-vis-quote">"</span>
-                    <p class="lp-vis-claim-text">Scientists confirm 5G towers cause memory loss in adults over 40.</p>
+                    <p class="lp-vis-claim-text">
+                        Scientists confirm 5G towers cause memory loss
+                        in adults over 40.
+                    </p>
                 </div>
                 <div class="lp-vis-verdict-badge false">
                     <span>✗</span> False Claim
                 </div>
-                <p class="lp-vis-reason">No peer-reviewed study supports this. Flagged by WHO &amp; CDC.</p>
+                <p class="lp-vis-reason">
+                    No peer-reviewed study supports this.
+                    Flagged by WHO &amp; CDC.
+                </p>
             </div>
         </div>
     </div>
@@ -148,7 +154,8 @@
             <div class="lp-feature-icon-wrap">
                 <span class="lp-feature-icon">⚡</span>
             </div>
-            <h2 class="lp-feature-title">Results in under 5 seconds</h2>
+            <span class="lp-feature-tag">Performance</span>
+            <h2 class="lp-feature-title">Results in under 20 seconds</h2>
             <p class="lp-feature-desc">
                 No waiting, no sign-up, no friction. Veritas processes
                 your query against a live knowledge graph and returns
@@ -159,8 +166,8 @@
             <div class="lp-vis-card speed-card">
                 <div class="lp-speed-ring">
                     <svg viewBox="0 0 80 80" class="lp-ring-svg">
-                        <circle cx="40" cy="40" r="34" class="lp-ring-track"/>
-                        <circle cx="40" cy="40" r="34" class="lp-ring-progress"/>
+                        <circle cx="40" cy="40" r="34" class="lp-ring-track" />
+                        <circle cx="40" cy="40" r="34" class="lp-ring-progress" />
                     </svg>
                     <span class="lp-speed-label">2.4s</span>
                 </div>
@@ -175,6 +182,7 @@
             <div class="lp-feature-icon-wrap">
                 <span class="lp-feature-icon">🛡️</span>
             </div>
+            <span class="lp-feature-tag">Privacy</span>
             <h2 class="lp-feature-title">Private by design</h2>
             <p class="lp-feature-desc">
                 No account required. No data stored. Your queries are
@@ -198,77 +206,13 @@
                         <span>No training</span>
                     </div>
                 </div>
-                <p class="lp-privacy-note">We never use your queries to improve our models.</p>
+                <p class="lp-privacy-note">
+                    We never use your queries to improve our models.
+                </p>
             </div>
         </div>
     </div>
 
-</section>
-
-<!-- ═══════════════════════════════════════════
-     STATS BAR
-═══════════════════════════════════════════ -->
-<section class="lp-stats">
-    <div class="lp-stats-inner">
-        <div class="lp-stat">
-            <span class="lp-stat-num">10K+</span>
-            <span class="lp-stat-label">Claims verified daily</span>
-        </div>
-        <div class="lp-stat-divider"></div>
-        <div class="lp-stat">
-            <span class="lp-stat-num">94%</span>
-            <span class="lp-stat-label">Accuracy rate</span>
-        </div>
-        <div class="lp-stat-divider"></div>
-        <div class="lp-stat">
-            <span class="lp-stat-num">&lt; 5s</span>
-            <span class="lp-stat-label">Average response time</span>
-        </div>
-        <div class="lp-stat-divider"></div>
-        <div class="lp-stat">
-            <span class="lp-stat-num">200+</span>
-            <span class="lp-stat-label">Trusted source databases</span>
-        </div>
-    </div>
-</section>
-
-<!-- ═══════════════════════════════════════════
-     TESTIMONIALS
-═══════════════════════════════════════════ -->
-<section class="lp-testimonials">
-    <h2 class="lp-section-heading">What people are saying</h2>
-    <div class="lp-testimonial-grid">
-        <div class="lp-testimonial-card">
-            <p class="lp-testimonial-text">"I use Veritas every time I see a suspicious headline. It's become part of my daily reading routine."</p>
-            <div class="lp-testimonial-author">
-                <div class="lp-author-avatar" style="background: linear-gradient(135deg, #D8E9A8, #4E9F3D)">A</div>
-                <div>
-                    <p class="lp-author-name">Aisha M.</p>
-                    <p class="lp-author-role">Journalist</p>
-                </div>
-            </div>
-        </div>
-        <div class="lp-testimonial-card">
-            <p class="lp-testimonial-text">"The speed is unreal. I pasted a link and had a full breakdown before I even finished reading the article."</p>
-            <div class="lp-testimonial-author">
-                <div class="lp-author-avatar" style="background: linear-gradient(135deg, #4E9F3D, #1E5128)">R</div>
-                <div>
-                    <p class="lp-author-name">Rohan K.</p>
-                    <p class="lp-author-role">Software Engineer</p>
-                </div>
-            </div>
-        </div>
-        <div class="lp-testimonial-card">
-            <p class="lp-testimonial-text">"Finally a tool that doesn't require an account. I trust it more because it doesn't ask for anything from me."</p>
-            <div class="lp-testimonial-author">
-                <div class="lp-author-avatar" style="background: linear-gradient(135deg, #1E5128, #4E9F3D)">S</div>
-                <div>
-                    <p class="lp-author-name">Sofia L.</p>
-                    <p class="lp-author-role">University Student</p>
-                </div>
-            </div>
-        </div>
-    </div>
 </section>
 
 <!-- ═══════════════════════════════════════════
@@ -277,7 +221,7 @@
 <section class="lp-privacy-banner">
     <div class="lp-privacy-banner-inner">
         <div class="lp-privacy-banner-icon">🔐</div>
-        <div>
+        <div class="lp-privacy-banner-content">
             <h3 class="lp-privacy-banner-title">We value your privacy</h3>
             <p class="lp-privacy-banner-text">
                 Veritas never stores your queries, never builds a profile on you,
@@ -288,6 +232,7 @@
         <div class="lp-privacy-banner-shields">
             <span class="lp-shield">🛡 No Logs</span>
             <span class="lp-shield">🛡 No Ads</span>
+            <span class="lp-shield">🛡 No Tracking</span>
         </div>
     </div>
 </section>
@@ -297,15 +242,17 @@
 ═══════════════════════════════════════════ -->
 <section class="lp-final-cta">
     <div class="lp-final-glow"></div>
-    <h2 class="lp-final-title">
-        Stop guessing.<br/>
-        <span class="lp-gradient-text">Start knowing.</span>
-    </h2>
-    <p class="lp-final-sub">No sign-up. No cost. Just the truth.</p>
-    <a href="/detect" class="lp-cta-btn large">
-        <span>Open Veritas</span>
-        <span class="lp-cta-arrow">→</span>
-    </a>
+    <div class="lp-final-inner">
+        <h2 class="lp-final-title">
+            Stop guessing.<br />
+            <span class="lp-gradient-text">Start knowing.</span>
+        </h2>
+        <p class="lp-final-sub">No sign-up. No cost. Just the truth.</p>
+        <a href="/detect" class="lp-cta-btn large">
+            <span>Open Veritas</span>
+            <span class="lp-cta-arrow">→</span>
+        </a>
+    </div>
 </section>
 
 <!-- ═══════════════════════════════════════════
@@ -317,6 +264,7 @@
             <img src="lotus.svg" class="lp-footer-lotus" alt="" aria-hidden="true" />
             Veritas
         </span>
+        
         <span class="lp-footer-copy">© 2026 · Built to fight misinformation</span>
     </div>
 </footer>
