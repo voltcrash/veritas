@@ -245,9 +245,47 @@
       color: #f97373;
       font-size: 11px;
     }
+    .logo-wrap {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      margin-bottom: 10px;
+    }
+
+    .logo-lotus {
+    height: 28px;
+    width: auto;
+    max-width: 48px;
+    object-fit: contain;
+    display: block;
+    filter: drop-shadow(0 0 6px #4E9F3D80);
+    transition: filter 0.3s ease;
+    }
+
+    .navbar-logo:hover .logo-lotus {
+        filter: drop-shadow(0 0 12px #4E9F3Dcc);
+    }
+
+    .logo-text {
+        font-size: 1.05rem;
+        font-weight: 700;
+        letter-spacing: 0.1em;
+        font-family: 'Quicksand', sans-serif;
+        background: linear-gradient(135deg, #D8E9A8 0%, #4E9F3D 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
   </style>
 </head>
 <body>
+  <div class="logo-wrap">
+    <img src="favicon.png" class="logo-lotus" alt="Veritas lotus" aria-hidden="true" />
+    <span class="logo-text">Veritas</span>
+  </div>
+
   <p class="tagline">Verify any news in seconds</p>
 
   <div class="input-card">

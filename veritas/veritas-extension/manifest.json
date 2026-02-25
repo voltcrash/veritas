@@ -3,6 +3,12 @@
     "name": "Veritas – News Verifier",
     "version": "0.1.0",
     "description": "Send the current page or any text to your Veritas backend to verify news in seconds.",
+    "icons": {
+      "16": "favicon.png",
+      "32": "favicon.png",
+      "48": "favicon.png",
+      "128": "favicon.png"
+    },
     "action": {
       "default_title": "Verify with Veritas",
       "default_popup": "popup.html"

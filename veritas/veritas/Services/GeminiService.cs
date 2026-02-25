@@ -31,6 +31,19 @@ public sealed class GeminiService
     {
         var content = await BuildContentAsync(request, cancellationToken);
 
+        if (string.IsNullOrWhiteSpace(_options.ApiKey))
+        {
+            return new NewsAnalysisResponse
+            {
+                Verdict = "UNCERTAIN",
+                Summary = "Gemini API key is not configured on the server.",
+                Reasons = new List<string>
+                {
+                    "Set Gemini:ApiKey in configuration or as an environment variable."
+                }
+            };
+        }
+
         var prompt =
             """
             You are Veritas, an AI misinformation detector.
@@ -89,17 +102,11 @@ public sealed class GeminiService
             }
         };
 
-        if (string.IsNullOrWhiteSpace(_options.ApiKey))
+        // If the configured key looks like a Google Gemini key (e.g. starts with "AIza"),
+        // call the native Gemini API instead of the OpenRouter proxy.
+        if (LooksLikeGoogleGeminiKey(_options.ApiKey))
         {
-            return new NewsAnalysisResponse
-            {
-                Verdict = "UNCERTAIN",
-                Summary = "Gemini API key is not configured on the server.",
-                Reasons = new List<string>
-                {
-                    "Set Gemini:ApiKey in configuration or as an environment variable."
-                }
-            };
+            return await AnalyzeWithGoogleGeminiAsync(prompt, content, cancellationToken);
         }
 
         using var requestMessage = new HttpRequestMessage(
@@ -222,6 +229,162 @@ public sealed class GeminiService
         };
     }
 
+    private async Task<NewsAnalysisResponse> AnalyzeWithGoogleGeminiAsync(string prompt, string content, CancellationToken cancellationToken)
+    {
+        var url =
+            $"https://generativelanguage.googleapis.com/v1beta/models/{_options.Model}:generateContent?key={_options.ApiKey}";
+
+        var body = new
+        {
+            contents = new[]
+            {
+                new
+                {
+                    role = "user",
+                    parts = new[]
+                    {
+                        new
+                        {
+                            text = $"{prompt}\n\nCONTENT TO ANALYZE:\n{content}"
+                        }
+                    }
+                }
+            },
+            generationConfig = new
+            {
+                temperature = 0.0,
+                topP = 0.1
+            }
+        };
+
+        using var requestMessage = new HttpRequestMessage(HttpMethod.Post, url)
+        {
+            Content = JsonContent.Create(body)
+        };
+
+        using var response = await _httpClient.SendAsync(requestMessage, cancellationToken);
+
+        if (!response.IsSuccessStatusCode)
+        {
+            var errorText = await response.Content.ReadAsStringAsync(cancellationToken);
+            return new NewsAnalysisResponse
+            {
+                Verdict = "UNCERTAIN",
+                Summary = "Unable to reach the verification engine.",
+                Reasons = new List<string>
+                {
+                    $"HTTP {(int)response.StatusCode} from Gemini API.",
+                    string.IsNullOrWhiteSpace(errorText)
+                        ? "No error body returned."
+                        : Truncate(errorText, 500)
+                }
+            };
+        }
+
+        string text;
+
+        try
+        {
+            await using var stream = await response.Content.ReadAsStreamAsync(cancellationToken);
+            using var jsonDoc = await JsonDocument.ParseAsync(stream, cancellationToken: cancellationToken);
+
+            var root = jsonDoc.RootElement;
+
+            if (!root.TryGetProperty("candidates", out var candidates) ||
+                candidates.ValueKind != JsonValueKind.Array ||
+                candidates.GetArrayLength() == 0)
+            {
+                return new NewsAnalysisResponse
+                {
+                    Verdict = "UNCERTAIN",
+                    Summary = "Verification engine returned an unexpected response.",
+                    Raw = root.GetRawText()
+                };
+            }
+
+            var candidate = candidates[0];
+
+            if (!candidate.TryGetProperty("content", out var candidateContent) ||
+                !candidateContent.TryGetProperty("parts", out var parts) ||
+                parts.ValueKind != JsonValueKind.Array ||
+                parts.GetArrayLength() == 0)
+            {
+                return new NewsAnalysisResponse
+                {
+                    Verdict = "UNCERTAIN",
+                    Summary = "Verification engine did not return any text.",
+                    Raw = candidate.GetRawText()
+                };
+            }
+
+            text = parts[0].GetProperty("text").GetString() ?? string.Empty;
+        }
+        catch (Exception ex)
+        {
+            return new NewsAnalysisResponse
+            {
+                Verdict = "UNCERTAIN",
+                Summary = "Verification engine returned an invalid response.",
+                Reasons = new List<string> { ex.Message },
+                Raw = string.Empty
+            };
+        }
+
+        GeminiAnalysisPayload? payload;
+
+        try
+        {
+            payload = JsonSerializer.Deserialize<GeminiAnalysisPayload>(
+                text,
+                new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+        }
+        catch (Exception ex)
+        {
+            return new NewsAnalysisResponse
+            {
+                Verdict = "UNCERTAIN",
+                Summary = "Verification engine returned an invalid response.",
+                Reasons = new List<string> { ex.Message },
+                Raw = text
+            };
+        }
+
+        if (payload is null)
+        {
+            return new NewsAnalysisResponse
+            {
+                Verdict = "UNCERTAIN",
+                Summary = "Verification engine returned an unexpected format.",
+                Raw = text
+            };
+        }
+
+        var verdict = payload.Verdict?.Trim().ToUpperInvariant();
+        if (verdict is not ("GOOD" or "BAD" or "UNCERTAIN"))
+        {
+            verdict = "UNCERTAIN";
+        }
+
+        return new NewsAnalysisResponse
+        {
+            Verdict = verdict!,
+            Confidence = clamp(payload.Confidence),
+            Summary = payload.Summary?.Trim() ?? string.Empty,
+            Reasons = payload.Reasons?
+                          .Where(r => !string.IsNullOrWhiteSpace(r)).Select(r => r.Trim()).ToList()
+                      ?? new List<string>(),
+            Sources = payload.Sources?
+                          .Where(s => !string.IsNullOrWhiteSpace(s.Url) || !string.IsNullOrWhiteSpace(s.Name))
+                          .Select(s => new NewsSource
+                          {
+                              Name = s.Name?.Trim() ?? string.Empty,
+                              Url = s.Url?.Trim() ?? string.Empty
+                          }).ToList()
+                      ?? new List<NewsSource>(),
+            Raw = text
+        };
+    }
+
     private async Task<string> BuildContentAsync(NewsAnalysisRequest request, CancellationToken cancellationToken)
     {
         if (string.IsNullOrWhiteSpace(request.Input))
@@ -285,6 +448,16 @@ public sealed class GeminiService
         > 1 => 1,
         _ => v
     };
+
+    private static bool LooksLikeGoogleGeminiKey(string apiKey)
+    {
+        if (string.IsNullOrWhiteSpace(apiKey))
+        {
+            return false;
+        }
+
+        return apiKey.StartsWith("AIza", StringComparison.Ordinal);
+    }
 
     private static bool LooksLikeUrl(string value)
     {

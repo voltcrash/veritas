@@ -21,12 +21,12 @@ function setVerdictPill(verdict) {
 
   if (v === "GOOD") {
     verdictPill.classList.add("good");
-    verdictPill.textContent = "Good news";
+    verdictPill.textContent = "Credible";
   } else if (v === "BAD") {
     verdictPill.classList.add("bad");
-    verdictPill.textContent = "Bad news";
+    verdictPill.textContent = "Misleading";
   } else if (v === "UNCERTAIN") {
-    verdictPill.textContent = "Uncertain";
+    verdictPill.textContent = "Inconclusive";
   } else if (v === "ERROR") {
     verdictPill.textContent = "Error";
   } else {

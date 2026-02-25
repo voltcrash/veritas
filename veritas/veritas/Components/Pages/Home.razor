@@ -203,9 +203,9 @@
 
     private static string GetVerdictLabel(string verdict) => verdict?.ToUpperInvariant() switch
     {
-        "GOOD" => "Good news",
-        "BAD" => "Bad news",
-        "UNCERTAIN" => "Uncertain",
+        "GOOD" => "Credible",
+        "BAD" => "Misleading",
+        "UNCERTAIN" => "Inconclusive",
         "ERROR" => "Error",
         _ => verdict ?? "Unknown"
     };
