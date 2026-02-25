@@ -6,6 +6,7 @@
      HERO
 ═══════════════════════════════════════════ -->
 <section class="lp-hero">
+    <canvas class="lp-particles" id="particleCanvas"></canvas>
     <div class="lp-hero-glow"></div>
     <div class="lp-hero-inner">
         <p class="lp-eyebrow">
@@ -22,6 +23,7 @@
         </p>
         <div class="lp-hero-actions">
             <a href="/detect" class="lp-cta-btn">
+                <span class="lp-btn-shimmer"></span>
                 <span>Open Veritas</span>
                 <span class="lp-cta-arrow">→</span>
             </a>
@@ -29,21 +31,22 @@
     </div>
 
     <div class="lp-hero-visual">
-        <div class="lp-mock-card">
+        <div class="lp-mock-card" id="mockCard">
             <div class="lp-mock-header">
                 <div class="lp-mock-dots">
                     <span class="lp-mock-dot red"></span>
                     <span class="lp-mock-dot yellow"></span>
                     <span class="lp-mock-dot green"></span>
                 </div>
-                <span class="lp-mock-url">veritas.app/detect</span>
+                <span class="lp-mock-url" id="mockUrl"></span>
             </div>
             <div class="lp-mock-body">
                 <div class="lp-mock-input-row">
                     <span class="lp-mock-icon">🔗</span>
                     <span class="lp-mock-placeholder">https://example.com/breaking-news…</span>
                 </div>
-                <div class="lp-mock-result">
+                <div class="lp-mock-scan-line" id="scanLine"></div>
+                <div class="lp-mock-result" id="mockResult" style="opacity:0">
                     <div class="lp-mock-verdict false">
                         <span class="lp-verdict-dot"></span>
                         <span>Likely Misleading</span>
@@ -52,21 +55,21 @@
                         <div class="lp-bar-row">
                             <span class="lp-bar-label">Credibility</span>
                             <div class="lp-bar-track">
-                                <div class="lp-bar-fill" style="width: 22%"></div>
+                                <div class="lp-bar-fill" data-width="22"></div>
                             </div>
                             <span class="lp-bar-val red-val">22%</span>
                         </div>
                         <div class="lp-bar-row">
                             <span class="lp-bar-label">Source Trust</span>
                             <div class="lp-bar-track">
-                                <div class="lp-bar-fill amber" style="width: 45%"></div>
+                                <div class="lp-bar-fill amber" data-width="45"></div>
                             </div>
                             <span class="lp-bar-val amber-val">45%</span>
                         </div>
                         <div class="lp-bar-row">
                             <span class="lp-bar-label">Fact Match</span>
                             <div class="lp-bar-track">
-                                <div class="lp-bar-fill" style="width: 18%"></div>
+                                <div class="lp-bar-fill" data-width="18"></div>
                             </div>
                             <span class="lp-bar-val red-val">18%</span>
                         </div>
@@ -82,8 +85,7 @@
 ═══════════════════════════════════════════ -->
 <section class="lp-features">
 
-    <!-- Feature 1 -->
-    <div class="lp-feature-row slide-left">
+    <div class="lp-feature-row slide-left" data-stagger="0">
         <div class="lp-feature-text">
             <div class="lp-feature-icon-wrap">
                 <span class="lp-feature-icon">🔗</span>
@@ -97,7 +99,7 @@
             </p>
         </div>
         <div class="lp-feature-visual">
-            <div class="lp-vis-card link-card">
+            <div class="lp-vis-card link-card tilt-card">
                 <div class="lp-vis-url-bar">
                     <span class="lp-vis-lock">🔒</span>
                     <span class="lp-vis-url-text">reuters.com/world/article-xyz</span>
@@ -114,8 +116,7 @@
         </div>
     </div>
 
-    <!-- Feature 2 -->
-    <div class="lp-feature-row reverse slide-right">
+    <div class="lp-feature-row reverse slide-right" data-stagger="1">
         <div class="lp-feature-text">
             <div class="lp-feature-icon-wrap">
                 <span class="lp-feature-icon">📝</span>
@@ -129,7 +130,7 @@
             </p>
         </div>
         <div class="lp-feature-visual">
-            <div class="lp-vis-card text-card">
+            <div class="lp-vis-card text-card tilt-card">
                 <div class="lp-vis-claim-box">
                     <span class="lp-vis-quote">"</span>
                     <p class="lp-vis-claim-text">
@@ -148,8 +149,7 @@
         </div>
     </div>
 
-    <!-- Feature 3 -->
-    <div class="lp-feature-row slide-left">
+    <div class="lp-feature-row slide-left" data-stagger="2">
         <div class="lp-feature-text">
             <div class="lp-feature-icon-wrap">
                 <span class="lp-feature-icon">⚡</span>
@@ -158,26 +158,27 @@
             <h2 class="lp-feature-title">Results in under 20 seconds</h2>
             <p class="lp-feature-desc">
                 No waiting, no sign-up, no friction. Veritas processes
-                your query instantly and returns 
-                a structured verdict faster than you can read the headline.
+                your query instantly and returns a structured verdict
+                faster than you can read the headline.
             </p>
         </div>
         <div class="lp-feature-visual">
-            <div class="lp-vis-card speed-card">
+            <div class="lp-vis-card speed-card tilt-card">
                 <div class="lp-speed-ring">
                     <svg viewBox="0 0 80 80" class="lp-ring-svg">
                         <circle cx="40" cy="40" r="34" class="lp-ring-track" />
                         <circle cx="40" cy="40" r="34" class="lp-ring-progress" />
                     </svg>
-                    <span class="lp-speed-label">10s</span>
+                    <span class="lp-speed-label">
+                        <span class="lp-counter" data-target="10">0</span>s
+                    </span>
                 </div>
                 <p class="lp-speed-caption">Average analysis time</p>
             </div>
         </div>
     </div>
 
-    <!-- Feature 4 -->
-    <div class="lp-feature-row reverse slide-right">
+    <div class="lp-feature-row reverse slide-right" data-stagger="3">
         <div class="lp-feature-text">
             <div class="lp-feature-icon-wrap">
                 <span class="lp-feature-icon">🛡️</span>
@@ -191,7 +192,7 @@
             </p>
         </div>
         <div class="lp-feature-visual">
-            <div class="lp-vis-card privacy-card">
+            <div class="lp-vis-card privacy-card tilt-card">
                 <div class="lp-privacy-icons">
                     <div class="lp-privacy-item">
                         <span class="lp-privacy-icon">🚫</span>
@@ -216,10 +217,155 @@
 </section>
 
 <!-- ═══════════════════════════════════════════
+     MISINFORMATION GRAPH
+═══════════════════════════════════════════ -->
+<section class="lp-graph-section reveal-up">
+    <div class="lp-graph-inner">
+        <div class="lp-graph-header">
+            <span class="lp-feature-tag">The Problem</span>
+            <h2 class="lp-graph-title">
+                Misinformation moves in <span class="lp-gradient-text">minutes</span>
+                — truth takes longer
+            </h2>
+            <p class="lp-graph-sub">
+                People share headlines before checking. Corrections arrive
+                hours after the damage is done.
+            </p>
+        </div>
+
+        <div class="lp-graph-card">
+            <div class="lp-graph-points">
+                <div class="lp-graph-point">
+                    <span class="lp-graph-point-icon">💬</span>
+                    <div>
+                        <strong>Overwhelming Volume</strong>
+                        <p>Links and screenshots forwarded in seconds across social feeds</p>
+                    </div>
+                </div>
+                <div class="lp-graph-point">
+                    <span class="lp-graph-point-icon">⚡</span>
+                    <div>
+                        <strong>Speed Mismatch</strong>
+                        <p>Misleading headlines spread faster than any correction</p>
+                    </div>
+                </div>
+                <div class="lp-graph-point">
+                    <span class="lp-graph-point-icon">🛡</span>
+                    <div>
+                        <strong>Trust Gap</strong>
+                        <p>Users lack a quick, transparent way to verify</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="lp-graph-wrap">
+                <svg
+                    class="lp-chart"
+                    id="misChart"
+                    viewBox="0 0 780 280"
+                    preserveAspectRatio="xMidYMid meet"
+                    aria-label="Chart: Viral spread vs manual verification over time"
+                >
+                    <!-- Grid lines -->
+                    <line x1="60" y1="20"  x2="60"  y2="230" class="lp-axis" />
+                    <line x1="60" y1="230" x2="760" y2="230" class="lp-axis" />
+
+                    <line x1="60" y1="70"  x2="760" y2="70"  class="lp-grid" />
+                    <line x1="60" y1="110" x2="760" y2="110" class="lp-grid" />
+                    <line x1="60" y1="150" x2="760" y2="150" class="lp-grid" />
+                    <line x1="60" y1="190" x2="760" y2="190" class="lp-grid" />
+
+                    <!-- Y-axis labels -->
+                    <text x="50" y="74"  class="lp-axis-label" text-anchor="end">High</text>
+                    <text x="50" y="234" class="lp-axis-label" text-anchor="end">Low</text>
+
+                    <!-- X-axis labels -->
+                    <text x="60"  y="248" class="lp-axis-label" text-anchor="middle">0m</text>
+                    <text x="150" y="248" class="lp-axis-label" text-anchor="middle">10m</text>
+                    <text x="240" y="248" class="lp-axis-label" text-anchor="middle">30m</text>
+                    <text x="330" y="248" class="lp-axis-label" text-anchor="middle">1h</text>
+                    <text x="420" y="248" class="lp-axis-label" text-anchor="middle">2h</text>
+                    <text x="510" y="248" class="lp-axis-label" text-anchor="middle">4h</text>
+                    <text x="600" y="248" class="lp-axis-label" text-anchor="middle">8h</text>
+                    <text x="690" y="248" class="lp-axis-label" text-anchor="middle">12h</text>
+                    <text x="760" y="248" class="lp-axis-label" text-anchor="middle">24h</text>
+
+                    <text x="390" y="270" class="lp-axis-label" text-anchor="middle"
+                          style="font-size:0.62rem;fill:#1E5128;">
+                        Time Since Publication
+                    </text>
+
+                    <!-- Viral Spread area fill -->
+                    <path
+                        class="lp-area viral-area"
+                        d="M60,230
+                           C100,180 130,100 240,65
+                           S390,42 760,38
+                           L760,230 Z"
+                    />
+
+                    <!-- Manual Verification area fill -->
+                    <path
+                        class="lp-area manual-area"
+                        d="M60,230
+                           C160,228 260,218 330,205
+                           S520,160 760,68
+                           L760,230 Z"
+                    />
+
+                    <!-- Viral Spread line -->
+                    <path
+                        id="viralLine"
+                        class="lp-line viral-line"
+                        d="M60,230
+                           C100,180 130,100 240,65
+                           S390,42 760,38"
+                    />
+
+                    <!-- Manual Verification line -->
+                    <path
+                        id="manualLine"
+                        class="lp-line manual-line"
+                        d="M60,230
+                           C160,228 260,218 330,205
+                           S520,160 760,68"
+                    />
+
+                    <!-- Endpoint dots -->
+                    <circle class="lp-dot viral-dot" cx="760" cy="38" r="5" />
+                    <circle class="lp-dot manual-dot" cx="760" cy="68" r="5" />
+
+                    <!-- Tooltip group (hidden by default) -->
+                    <g id="chartTooltip" style="display:none">
+                        <rect class="lp-tooltip-bg" rx="6" />
+                        <text class="lp-tooltip-text" id="ttText1" x="0" y="0"></text>
+                        <text class="lp-tooltip-text lp-tooltip-sub" id="ttText2" x="0" y="0"></text>
+                        <line class="lp-tooltip-line" id="ttLine" />
+                        <circle class="lp-tooltip-dot viral-dot" id="ttDotV" r="4" />
+                        <circle class="lp-tooltip-dot manual-dot" id="ttDotM" r="4" />
+                    </g>
+                </svg>
+
+                <div class="lp-graph-legend">
+                    <div class="lp-legend-item">
+                        <span class="lp-legend-line viral"></span>
+                        <span>Viral Spread</span>
+                    </div>
+                    <div class="lp-legend-item">
+                        <span class="lp-legend-line manual"></span>
+                        <span>Manual Verification</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ═══════════════════════════════════════════
      PRIVACY BANNER
 ═══════════════════════════════════════════ -->
 <section class="lp-privacy-banner">
-    <div class="lp-privacy-banner-inner">
+    <div class="lp-privacy-banner-inner reveal-up">
         <div class="lp-privacy-banner-icon">🔐</div>
         <div class="lp-privacy-banner-content">
             <h3 class="lp-privacy-banner-title">We value your privacy</h3>
@@ -242,13 +388,14 @@
 ═══════════════════════════════════════════ -->
 <section class="lp-final-cta">
     <div class="lp-final-glow"></div>
-    <div class="lp-final-inner">
+    <div class="lp-final-inner reveal-up">
         <h2 class="lp-final-title">
             Stop guessing.<br />
             <span class="lp-gradient-text">Start knowing.</span>
         </h2>
         <p class="lp-final-sub">No sign-up. No cost. Just the truth.</p>
         <a href="/detect" class="lp-cta-btn large">
+            <span class="lp-btn-shimmer"></span>
             <span>Open Veritas</span>
             <span class="lp-cta-arrow">→</span>
         </a>
@@ -264,7 +411,6 @@
             <img src="lotus.svg" class="lp-footer-lotus" alt="" aria-hidden="true" />
             Veritas
         </span>
-        
         <span class="lp-footer-copy">© 2026 · Built to fight misinformation</span>
     </div>
 </footer>
