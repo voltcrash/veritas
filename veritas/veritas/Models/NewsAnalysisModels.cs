@@ -11,7 +11,12 @@ public sealed class NewsAnalysisRequest
 public sealed class NewsAnalysisResponse
 {
     public string Verdict { get; set; } = "UNCERTAIN"; // GOOD / BAD / UNCERTAIN
-    public double Confidence { get; set; }
+    /// <summary>
+    /// Reliability score from 0–100.
+    /// 0   = definitely fake / misleading,
+    /// 100 = completely reliable news.
+    /// </summary>
+    public double Reliability { get; set; }
     public string Summary { get; set; } = string.Empty;
     public List<string> Reasons { get; set; } = new();
     public List<NewsSource> Sources { get; set; } = new();
@@ -30,8 +35,8 @@ internal sealed class GeminiAnalysisPayload
     [JsonPropertyName("verdict")]
     public string Verdict { get; set; } = string.Empty;
 
-    [JsonPropertyName("confidence")]
-    public double Confidence { get; set; }
+    [JsonPropertyName("reliability")]
+    public double Reliability { get; set; }
 
     [JsonPropertyName("summary")]
     public string Summary { get; set; } = string.Empty;

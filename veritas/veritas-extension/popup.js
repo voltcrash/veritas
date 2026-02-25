@@ -1,155 +1,209 @@
-const API_BASE = "https://localhost:7262"; // change in prod
+// popup.js
+const API_BASE = "https://localhost:7262";
 const ANALYZE_URL = `${API_BASE}/api/analyze`;
 
-const inputEl = document.getElementById("input");
-const analyzeBtn = document.getElementById("analyzeBtn");
-const charCountEl = document.getElementById("charCount");
+// When the server requires API key auth (Veritas:ClientApiKey in .env), set the same key here.
+// Leave empty if the server does not require a key.
+const VERITAS_CLIENT_API_KEY = "";
 
-const resultEl = document.getElementById("result");
-const verdictPill = document.getElementById("verdictPill");
-const confidenceLabel = document.getElementById("confidenceLabel");
-const confidenceBar = document.getElementById("confidenceBar");
-const summaryEl = document.getElementById("summary");
-const reasonsEl = document.getElementById("reasons");
-const sourcesBlockEl = document.getElementById("sourcesBlock");
-const sourcesEl = document.getElementById("sources");
-const errorEl = document.getElementById("error");
+const analyzeScreen = document.getElementById("analyzeScreen");
+const resultScreen  = document.getElementById("resultScreen");
+const analyzingUrl  = document.getElementById("analyzingUrl");
+const retryBtn      = document.getElementById("retryBtn");
+const resultCard    = document.getElementById("resultCard");
+const ringProgress  = document.getElementById("ringProgress");
+const ringPct       = document.getElementById("ringPct");
+const verdictPill   = document.getElementById("verdictPill");
+const summaryEl     = document.getElementById("summary");
+const reasonsBlock  = document.getElementById("reasonsBlock");
+const reasonsList   = document.getElementById("reasonsList");
+const sourcesBlock  = document.getElementById("sourcesBlock");
+const sourcesList   = document.getElementById("sourcesList");
+const errorText     = document.getElementById("errorText");
 
-function setVerdictPill(verdict) {
-  const v = (verdict || "").toUpperCase();
-  verdictPill.className = "pill";
+const CIRCUMFERENCE = 314.159;
 
-  if (v === "GOOD") {
-    verdictPill.classList.add("good");
-    verdictPill.textContent = "Credible";
-  } else if (v === "BAD") {
-    verdictPill.classList.add("bad");
-    verdictPill.textContent = "Misleading";
-  } else if (v === "UNCERTAIN") {
-    verdictPill.textContent = "Inconclusive";
-  } else if (v === "ERROR") {
-    verdictPill.textContent = "Error";
-  } else {
-    verdictPill.textContent = verdict || "Unknown";
-  }
+/** Normalize API response: backend may send PascalCase (Verdict, Reliability, etc.). */
+function normalizeResponse(data) {
+  if (!data || typeof data !== "object") return data;
+  return {
+    verdict:     data.verdict     ?? data.Verdict,
+    reliability: data.reliability ?? data.Reliability,
+    summary:     data.summary     ?? data.Summary,
+    reasons:     data.reasons     ?? data.Reasons ?? [],
+    sources:     (data.sources ?? data.Sources ?? []).map(s => ({
+      name: (s && (s.name ?? s.Name)) ?? "",
+      url:  (s && (s.url ?? s.Url)) ?? "",
+    })),
+  };
 }
 
-function renderResult(data) {
-  if (!data) return;
+function setRing(score) {
+  const clamped = Math.max(0, Math.min(100, score));
+  ringProgress.style.strokeDashoffset = (
+    CIRCUMFERENCE * (1 - clamped / 100)
+  ).toFixed(3);
+  ringPct.textContent = Math.round(clamped).toString();
+}
 
-  errorEl.textContent = "";
+const VERDICT_MAP = {
+  GOOD:      { label: "Credible",     cls: "good" },
+  BAD:       { label: "Misleading",   cls: "bad" },
+  UNCERTAIN: { label: "Inconclusive", cls: "uncertain" },
+  ERROR:     { label: "Error",        cls: "error" },
+};
 
-  setVerdictPill(data.verdict);
-  const conf = typeof data.confidence === "number" ? data.confidence : 0;
-  const pct = Math.round(Math.max(0, Math.min(1, conf)) * 100);
-  confidenceLabel.textContent = `${pct}% confidence`;
-  confidenceBar.style.width = `${pct}%`;
+function applyVerdict(verdict) {
+  const v    = (verdict || "").toUpperCase();
+  const info = VERDICT_MAP[v] ?? { label: verdict || "Unknown", cls: "" };
+  resultCard.className  = `result-card${info.cls ? ` verdict-${info.cls}` : ""}`;
+  verdictPill.className = `pill${info.cls ? ` ${info.cls}` : ""}`;
+  verdictPill.textContent = info.label;
+}
 
+function transitionToResult() {
+  analyzeScreen.classList.add("exit");
+  analyzeScreen.addEventListener(
+    "animationend",
+    () => {
+      analyzeScreen.style.display = "none";
+      resultScreen.classList.add("visible");
+    },
+    { once: true }
+  );
+}
+
+function populateResult(data) {
+  errorText.style.display = "none";
+  applyVerdict(data.verdict);
+  setRing(0);
   summaryEl.textContent = data.summary || "";
 
-  reasonsEl.innerHTML = "";
-  if (Array.isArray(data.reasons) && data.reasons.length > 0) {
-    data.reasons.forEach(r => {
-      if (!r) return;
-      const li = document.createElement("li");
-      li.textContent = r;
-      reasonsEl.appendChild(li);
+  // Reasons
+  reasonsList.innerHTML = "";
+  const reasons = (data.reasons ?? []).filter(Boolean);
+  if (reasons.length) {
+    reasons.forEach(r => {
+      const row = document.createElement("div");
+      row.className = "reason-item";
+      const dot = document.createElement("span");
+      dot.className = "reason-dot";
+      const txt = document.createElement("span");
+      txt.textContent = r;
+      row.appendChild(dot);
+      row.appendChild(txt);
+      reasonsList.appendChild(row);
     });
+    reasonsBlock.style.display = "";
+  } else {
+    reasonsBlock.style.display = "none";
   }
 
-  sourcesEl.innerHTML = "";
-  if (Array.isArray(data.sources) && data.sources.length > 0) {
-    sourcesBlockEl.style.display = "";
-    data.sources.forEach(src => {
-      if (!src) return;
-      const li = document.createElement("li");
+  // Sources
+  sourcesList.innerHTML = "";
+  const sources = (data.sources ?? []).filter(Boolean);
+  if (sources.length) {
+    sources.forEach(src => {
       const name = (src.name || "").trim();
-      const url = (src.url || "").trim();
+      const url  = (src.url  || "").trim();
+      if (!name && !url) return;
+      const chip = document.createElement("div");
+      chip.className = "source-chip";
       if (url) {
         const a = document.createElement("a");
         a.href = url;
         a.target = "_blank";
         a.rel = "noopener noreferrer";
         a.textContent = name || url;
-        li.appendChild(a);
-      } else if (name) {
-        li.textContent = name;
+        chip.appendChild(a);
+      } else {
+        chip.textContent = name;
       }
-      sourcesEl.appendChild(li);
+      sourcesList.appendChild(chip);
     });
+    sourcesBlock.style.display = "";
   } else {
-    sourcesBlockEl.style.display = "none";
+    sourcesBlock.style.display = "none";
   }
-
-  resultEl.style.display = "flex";
 }
 
-function renderError(message) {
-  setVerdictPill("ERROR");
-  confidenceLabel.textContent = "0% confidence";
-  confidenceBar.style.width = "0%";
-  summaryEl.textContent = "";
-  reasonsEl.innerHTML = "";
-  sourcesEl.innerHTML = "";
-  sourcesBlockEl.style.display = "none";
-  errorEl.textContent = message || "Unexpected error.";
-  resultEl.style.display = "flex";
+function showResult(data) {
+  populateResult(data);
+  transitionToResult();
+  // fill ring after transition settles
+  const score = typeof data.reliability === "number" ? data.reliability : 0;
+  setTimeout(() => setRing(score), 520);
 }
 
-async function analyze() {
-  const text = inputEl.value.trim();
-  if (!text) return;
+function showError(message) {
+  applyVerdict("ERROR");
+  setRing(0);
+  summaryEl.textContent      = message || "Unexpected error.";
+  reasonsBlock.style.display = "none";
+  sourcesBlock.style.display = "none";
+  errorText.style.display    = "none";
+  transitionToResult();
+}
 
-  analyzeBtn.disabled = true;
-  analyzeBtn.querySelector(".analyze-btn-text").textContent = "Analyzing…";
-  resultEl.style.display = "none";
+function resetToAnalyze() {
+  analyzeScreen.style.display = "";
+  analyzeScreen.classList.remove("exit");
+  resultScreen.classList.remove("visible");
+  runAnalysis();
+}
+
+const FETCH_TIMEOUT_MS = 35000;
+
+async function runAnalysis() {
+  setRing(0);
+
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
 
   try {
-    const res = await fetch(ANALYZE_URL, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        mode: "auto",
-        input: text
-      })
-    });
+    const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
+    const url  = tabs?.[0]?.url ?? "";
 
-    if (!res.ok) {
-      const body = await res.text();
-      renderError(`HTTP ${res.status}: ${body.slice(0, 200)}`);
+    if (!url || url.startsWith("chrome://") || url.startsWith("chrome-extension://")) {
+      showError("Can't analyze this page — try a regular web page.");
       return;
     }
 
-    const data = await res.json();
-    renderResult(data);
-  } catch (err) {
-    renderError(err && err.message ? err.message : String(err));
-  } finally {
-    analyzeBtn.disabled = false;
-    analyzeBtn.querySelector(".analyze-btn-text").textContent = "Analyze";
-  }
-}
+    analyzingUrl.textContent =
+      url.length > 52 ? url.slice(0, 52) + "…" : url;
 
-function updateCharCount() {
-  charCountEl.textContent = inputEl.value.length.toString();
-}
+    const headers = { "Content-Type": "application/json" };
+    if (VERITAS_CLIENT_API_KEY) headers["X-Veritas-Key"] = VERITAS_CLIENT_API_KEY;
 
-// Prefill with current tab URL if possible
-document.addEventListener("DOMContentLoaded", () => {
-  updateCharCount();
-
-  if (chrome.tabs && chrome.tabs.query) {
-    chrome.tabs.query({ active: true, currentWindow: true }, tabs => {
-      const tab = tabs && tabs[0];
-      if (tab && tab.url && !tab.url.startsWith("chrome://")) {
-        inputEl.value = tab.url;
-        updateCharCount();
-      }
+    const res = await fetch(ANALYZE_URL, {
+      method: "POST",
+      headers,
+      body: JSON.stringify({ mode: "auto", input: url }),
+      signal: controller.signal,
     });
-  }
 
-  inputEl.addEventListener("input", updateCharCount);
-  analyzeBtn.addEventListener("click", analyze);
+    clearTimeout(timeoutId);
+
+    if (!res.ok) {
+      const body = await res.text();
+      showError(`HTTP ${res.status}: ${body.slice(0, 120)}`);
+      return;
+    }
+
+    const raw = await res.json();
+    const data = normalizeResponse(raw);
+    showResult(data);
+  } catch (err) {
+    clearTimeout(timeoutId);
+    if (err?.name === "AbortError") {
+      showError("Request timed out. Check that the Veritas server is running at " + API_BASE);
+    } else {
+      showError(err?.message ?? String(err));
+    }
+  }
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  retryBtn.addEventListener("click", resetToAnalyze);
+  runAnalysis();
 });

@@ -22,8 +22,8 @@
 
             <div class="input-footer">
                 <span class="char-hint">@inputValue.Length chars</span>
-                <button class="analyze-btn" @onclick="AnalyzeAsync" disabled="@(isLoading)">
-                    <span class="analyze-btn-text">@((isLoading ? "Analyzing…" : "Analyze"))</span>
+                <button class="analyze-btn" @onclick="AnalyzeAsync" disabled="@isLoading">
+                    <span class="analyze-btn-text">@(isLoading ? "Analyzing…" : "Analyze")</span>
                     <span class="analyze-btn-arrow">→</span>
                 </button>
             </div>
@@ -36,55 +36,81 @@
             <h2 class="recent-heading">Latest Verdict</h2>
 
             <div class="analysis-card @GetVerdictCss(lastResult.Verdict)">
-                <div class="analysis-header">
-                    <span class="analysis-pill">@GetVerdictLabel(lastResult.Verdict)</span>
-                    <span class="analysis-confidence">@($"{lastResult.Confidence:P0}") confidence</span>
-                </div>
 
-                <div class="analysis-metrics">
-                    <div class="metric">
-                        <span class="metric-label">Confidence</span>
-                        <div class="metric-bar">
-                            <div class="metric-bar-fill" style="width:@(Math.Clamp(lastResult.Confidence, 0, 1) * 100)%"></div>
+                <div class="analysis-hero">
+                    <div class="reliability-ring-wrap">
+                        <svg class="reliability-ring" viewBox="0 0 120 120"
+                            aria-label="@($"Reliability {Math.Round(displayedReliability):F0} out of 100")">
+                            <circle class="ring-track" cx="60" cy="60" r="50" />
+                            <circle class="ring-progress" cx="60" cy="60" r="50"
+                                    style="stroke-dashoffset: @(
+                                        (314.159 * (1 - Math.Clamp(displayedReliability / 100d, 0, 1)))
+                                        .ToString("F3", System.Globalization.CultureInfo.InvariantCulture)
+                                    );" />
+                        </svg>
+                        <div class="ring-center">
+                            <span class="ring-pct">@($"{Math.Round(displayedReliability):F0}")</span>
                         </div>
+                    </div>
+                    <span class="reliability-label">Reliability Score</span>
+
+                    <div class="analysis-header">
+                        <span class="analysis-pill">@GetVerdictLabel(lastResult.Verdict)</span>
                     </div>
                 </div>
 
+                <!-- {{!-- Summary --}} -->
                 <p class="analysis-summary">@lastResult.Summary</p>
 
+                <!-- {{!-- Reasons --}} -->
                 @if (lastResult.Reasons?.Count > 0)
                 {
-                    <ul class="analysis-reasons">
-                        @foreach (var reason in lastResult.Reasons)
+                    <div class="analysis-reasons">
+                        <span class="section-label">Key Observations</span>
+                        @foreach (var (reason, i) in lastResult.Reasons
+                            .Select((r, idx) => (r, idx)))
                         {
-                            <li>@reason</li>
+                            <div class="reason-item"
+                                 style="animation-delay: @(
+                                     (i * 0.07)
+                                     .ToString("F2", System.Globalization.CultureInfo.InvariantCulture)
+                                 )s">
+                                <span class="reason-dot"></span>
+                                <span>@reason</span>
+                            </div>
                         }
-                    </ul>
+                    </div>
                 }
 
+                <!-- {{!-- Sources --}} -->
                 @if (lastResult.Sources?.Count > 0)
                 {
                     <div class="analysis-sources">
-                        <h3>Sources checked</h3>
-                        <ul>
+                        <span class="section-label">Sources Checked</span>
+                        <div class="sources-list">
                             @foreach (var source in lastResult.Sources)
                             {
-                                <li>
+                                <div class="source-chip">
                                     @if (!string.IsNullOrWhiteSpace(source.Url))
                                     {
-                                        <a href="@source.Url" target="_blank" rel="noopener noreferrer">
-                                            @(string.IsNullOrWhiteSpace(source.Name) ? source.Url : source.Name)
+                                        <a href="@source.Url"
+                                           target="_blank"
+                                           rel="noopener noreferrer">
+                                            @(string.IsNullOrWhiteSpace(source.Name)
+                                                ? source.Url
+                                                : source.Name)
                                         </a>
                                     }
                                     else
                                     {
                                         @source.Name
                                     }
-                                </li>
+                                </div>
                             }
-                        </ul>
+                        </div>
                     </div>
                 }
+
             </div>
         </section>
     }
@@ -96,8 +122,10 @@
             <div class="recent-list">
                 @foreach (var check in recentChecks)
                 {
-                    <div class="recent-item" @onclick="() => LoadCheck(check)">
-                        <span class="recent-type-badge">@GetVerdictLabel(check.Result.Verdict)</span>
+                    <div class="recent-item" @onclick="() => _ = LoadCheckAsync(check)">
+                        <span class="recent-type-badge">
+                            @GetVerdictLabel(check.Result.Verdict)
+                        </span>
                         <span class="recent-preview">@check.Preview</span>
                         <span class="recent-time">@check.TimeAgo</span>
                     </div>
@@ -111,6 +139,7 @@
     private string inputValue = string.Empty;
     private bool isLoading;
     private AnalysisResult? lastResult;
+    private double displayedReliability;
 
     private readonly List<RecentCheck> recentChecks = new();
 
@@ -120,36 +149,36 @@
 
         isLoading = true;
         lastResult = null;
+        displayedReliability = 0;
         StateHasChanged();
 
         var originalInput = inputValue;
 
         try
         {
-            var request = new NewsAnalysisRequest
+            var result = await Gemini.AnalyzeAsync(new NewsAnalysisRequest
             {
                 Mode = "auto",
                 Input = originalInput
-            };
+            });
 
-            var result = await Gemini.AnalyzeAsync(request);
             lastResult = new AnalysisResult
             {
-                Verdict = result.Verdict,
-                Confidence = result.Confidence,
-                Summary = result.Summary,
-                Reasons = result.Reasons ?? new List<string>(),
-                Sources = result.Sources ?? new List<NewsSource>()
+                Verdict      = result.Verdict,
+                Reliability  = result.Reliability,
+                Summary      = result.Summary,
+                Reasons      = result.Reasons ?? new List<string>(),
+                Sources      = result.Sources ?? new List<NewsSource>()
             };
         }
         catch (Exception ex)
         {
             lastResult = new AnalysisResult
             {
-                Verdict = "ERROR",
-                Confidence = 0,
-                Summary = "Unexpected error while verifying this content.",
-                Reasons = new List<string> { ex.Message }
+                Verdict      = "ERROR",
+                Reliability  = 0,
+                Summary      = "Unexpected error while verifying this content.",
+                Reasons      = new List<string> { ex.Message }
             };
         }
         finally
@@ -157,7 +186,12 @@
             isLoading = false;
         }
 
-        if (!string.IsNullOrWhiteSpace(originalInput) && lastResult is not null)
+        // Animate the ring: render at 0, then fill to actual value
+        StateHasChanged();
+        await Task.Delay(60);
+        displayedReliability = lastResult.Reliability;
+
+        if (!string.IsNullOrWhiteSpace(originalInput))
         {
             var preview = originalInput.Length > 80
                 ? originalInput[..80] + "…"
@@ -165,10 +199,10 @@
 
             recentChecks.Insert(0, new RecentCheck
             {
-                Preview = preview,
-                Input = originalInput,
-                Result = lastResult,
-                TimeAgo = "just now"
+                Preview  = preview,
+                Input    = originalInput,
+                Result   = lastResult,
+                TimeAgo  = "just now"
             });
 
             if (recentChecks.Count > 5)
@@ -178,10 +212,14 @@
         inputValue = string.Empty;
     }
 
-    private void LoadCheck(RecentCheck check)
+    private async Task LoadCheckAsync(RecentCheck check)
     {
         lastResult = check.Result;
         inputValue = check.Input;
+        displayedReliability = 0;
+        StateHasChanged();
+        await Task.Delay(60);
+        displayedReliability = check.Result.Reliability;
     }
 
     private class RecentCheck
@@ -195,27 +233,29 @@
     private sealed class AnalysisResult
     {
         public string Verdict { get; set; } = string.Empty;
-        public double Confidence { get; set; }
+        public double Reliability { get; set; }
         public string Summary { get; set; } = string.Empty;
         public List<string> Reasons { get; set; } = new();
         public List<NewsSource> Sources { get; set; } = new();
     }
 
-    private static string GetVerdictLabel(string verdict) => verdict?.ToUpperInvariant() switch
-    {
-        "GOOD" => "Credible",
-        "BAD" => "Misleading",
-        "UNCERTAIN" => "Inconclusive",
-        "ERROR" => "Error",
-        _ => verdict ?? "Unknown"
-    };
+    private static string GetVerdictLabel(string verdict) =>
+        verdict?.ToUpperInvariant() switch
+        {
+            "GOOD"      => "Credible",
+            "BAD"       => "Misleading",
+            "UNCERTAIN" => "Inconclusive",
+            "ERROR"     => "Error",
+            _           => verdict ?? "Unknown"
+        };
 
-    private static string GetVerdictCss(string verdict) => verdict?.ToUpperInvariant() switch
-    {
-        "GOOD" => "analysis-good",
-        "BAD" => "analysis-bad",
-        "UNCERTAIN" => "analysis-uncertain",
-        "ERROR" => "analysis-error",
-        _ => string.Empty
-    };
+    private static string GetVerdictCss(string verdict) =>
+        verdict?.ToUpperInvariant() switch
+        {
+            "GOOD"      => "analysis-good",
+            "BAD"       => "analysis-bad",
+            "UNCERTAIN" => "analysis-uncertain",
+            "ERROR"     => "analysis-error",
+            _           => string.Empty
+        };
 }

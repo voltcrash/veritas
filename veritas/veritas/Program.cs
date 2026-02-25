@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Options;
 using veritas.Client.Pages;
 using veritas.Components;
 using veritas.Models;
@@ -13,6 +14,7 @@ builder.Services.AddRazorComponents()
     .AddInteractiveWebAssemblyComponents();
 
 builder.Services.Configure<GeminiOptions>(builder.Configuration.GetSection("Gemini"));
+builder.Services.Configure<VeritasApiKeyOptions>(builder.Configuration.GetSection("Veritas"));
 builder.Services.AddHttpClient<GeminiService>();
 
 var app = builder.Build();
@@ -40,9 +42,23 @@ app.MapRazorComponents<App>()
     .AddInteractiveWebAssemblyRenderMode()
     .AddAdditionalAssemblies(typeof(veritas.Client._Imports).Assembly);
 
-// API endpoint for news analysis.
-app.MapPost("/api/analyze", async (NewsAnalysisRequest request, GeminiService gemini, CancellationToken ct) =>
+// API endpoint for news analysis (optional API key = RBAC: authenticated vs anonymous).
+app.MapPost("/api/analyze", async (
+    NewsAnalysisRequest request,
+    HttpContext httpContext,
+    GeminiService gemini,
+    IOptions<VeritasApiKeyOptions> apiKeyOptions,
+    CancellationToken ct) =>
 {
+    var clientKey = apiKeyOptions.Value.ClientApiKey;
+    if (!string.IsNullOrWhiteSpace(clientKey))
+    {
+        var key = httpContext.Request.Headers["X-Veritas-Key"].FirstOrDefault()
+                  ?? httpContext.Request.Headers.Authorization.FirstOrDefault()?.Replace("Bearer ", "", StringComparison.OrdinalIgnoreCase);
+        if (string.IsNullOrEmpty(key) || !string.Equals(key.Trim(), clientKey, StringComparison.Ordinal))
+            return Results.Json(new { error = "Unauthorized. Provide a valid X-Veritas-Key or Authorization: Bearer key." }, statusCode: 401);
+    }
+
     if (string.IsNullOrWhiteSpace(request.Input))
     {
         return Results.BadRequest(new { error = "Input is required." });

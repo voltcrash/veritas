@@ -57,7 +57,7 @@ public sealed class GeminiService
             - Think step by step but ONLY return JSON in the following shape:
               {
                 "verdict": "GOOD" | "BAD" | "UNCERTAIN",
-                "confidence": number between 0 and 1,
+                "reliability": integer between 0 and 100,
                 "summary": "short 1–2 sentence summary of what this news claims",
                 "reasons": [
                   "reason 1",
@@ -73,6 +73,10 @@ public sealed class GeminiService
             - \"sources\" must list specific, reputable sites you relied on
               (fact-checkers, major news orgs, scientific bodies). Include
               direct URLs whenever possible.
+            - \"reliability\" must follow this scale:
+              0   = definitely fake / misleading news
+              50  = mixed / unclear / partly supported
+              100 = completely reliable and well-supported news.
             - Do not add any extra keys.
             - Do not include any explanation outside the JSON.
             """;
@@ -213,7 +217,7 @@ public sealed class GeminiService
         return new NewsAnalysisResponse
         {
             Verdict = verdict!,
-            Confidence = clamp(payload.Confidence),
+            Reliability = ClampReliability(payload.Reliability),
             Summary = payload.Summary?.Trim() ?? string.Empty,
             Reasons = payload.Reasons?.Where(r => !string.IsNullOrWhiteSpace(r)).Select(r => r.Trim()).ToList()
                       ?? new List<string>(),
@@ -368,7 +372,7 @@ public sealed class GeminiService
         return new NewsAnalysisResponse
         {
             Verdict = verdict!,
-            Confidence = clamp(payload.Confidence),
+            Reliability = ClampReliability(payload.Reliability),
             Summary = payload.Summary?.Trim() ?? string.Empty,
             Reasons = payload.Reasons?
                           .Where(r => !string.IsNullOrWhiteSpace(r)).Select(r => r.Trim()).ToList()
@@ -442,10 +446,10 @@ public sealed class GeminiService
         return value[..max] + "…";
     }
 
-    private static double clamp(double v) => v switch
+    private static double ClampReliability(double v) => v switch
     {
         < 0 => 0,
-        > 1 => 1,
+        > 100 => 100,
         _ => v
     };
 
