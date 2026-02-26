@@ -15,7 +15,7 @@ COPY veritas/veritas.Client/ veritas/veritas.Client/
 RUN dotnet publish veritas/veritas/veritas.csproj \
     -c Release \
     -o /app/publish \
-    --no-restore
+    # --no-restore
 
 FROM mcr.microsoft.com/dotnet/aspnet:10.0
 WORKDIR /app
