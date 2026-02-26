@@ -1,0 +1,61 @@
+########################
+# General
+########################
+.git
+.git/
+.gitignore
+.gitattributes
+.DS_Store
+**/.DS_Store
+*.swp
+*.swo
+*.tmp
+*.log
+logs/
+tmp/
+
+########################
+# IDE / Editor
+########################
+.vs/
+.vscode/
+.idea/
+*.user
+*.suo
+*.userprefs
+
+########################
+# Build outputs (.NET)
+########################
+bin/
+obj/
+**/bin/
+**/obj/
+TestResults/
+artifacts/
+
+########################
+# Node / Frontend
+########################
+node_modules/
+**/node_modules/
+dist/
+build/
+coverage/
+
+########################
+# Environment & local config
+########################
+.env
+**/.env
+*.Development.json
+
+########################
+# Docker / tooling
+########################
+Dockerfile
+Dockerfile.*
+.dockerfile
+docker-compose.yml
+docker-compose.*.yml
+
