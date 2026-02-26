@@ -1,0 +1,596 @@
+<!-- popup.html -->
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Veritas</title>
+  <style>
+    :root {
+      --bg: #000;
+      --green-deep: #1E5128;
+      --green: #4E9F3D;
+      --sage: #D8E9A8;
+    }
+
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html, body {
+      width: 400px;
+      height: 480px;
+      background: var(--bg);
+      color: var(--sage);
+      font-family: system-ui, -apple-system, "Quicksand", sans-serif;
+      border-radius: 20px;
+      overflow: hidden;
+    }
+
+    /* ── Screen container ── */
+    .stage {
+      position: relative;
+      width: 400px;
+      height: 480px;
+      overflow: hidden;
+      border-radius: 20px;
+    }
+
+    .screen {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+    }
+
+    /* ══════════════════════════
+       ANALYZE SCREEN
+    ══════════════════════════ */
+    #analyzeScreen {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 18px;
+      background: radial-gradient(ellipse at center, #061008 0%, #000 70%);
+      z-index: 2;
+    }
+
+    #analyzeScreen.exit {
+      animation: screen-exit 0.48s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+    }
+
+    @keyframes screen-exit {
+      0%   { opacity: 1; transform: scale(1)    translateY(0); }
+      100% { opacity: 0; transform: scale(0.88) translateY(-20px); }
+    }
+
+    /* Pulse rings */
+    .pulse-rings {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      pointer-events: none;
+    }
+
+    .pulse-ring {
+      position: absolute;
+      width: 88px;
+      height: 88px;
+      border-radius: 50%;
+      border: 1.5px solid var(--green);
+      opacity: 0;
+      animation: pulse-out 2.4s ease-out infinite;
+    }
+    .pulse-ring:nth-child(2) { animation-delay: 0.8s; }
+    .pulse-ring:nth-child(3) { animation-delay: 1.6s; }
+
+    @keyframes pulse-out {
+      0%   { transform: scale(0.9); opacity: 0.65; }
+      100% { transform: scale(3.6); opacity: 0; }
+    }
+
+    /* Logo */
+    .analyze-logo {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .logo-img-wrap {
+      position: relative;
+      width: 72px;
+      height: 72px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .logo-lotus {
+      width: 56px;
+      height: 56px;
+      object-fit: contain;
+      animation: breathe 2.4s ease-in-out infinite;
+    }
+
+    @keyframes breathe {
+      0%, 100% { filter: drop-shadow(0 0 10px #4E9F3D80); transform: scale(1); }
+      50%       { filter: drop-shadow(0 0 28px #4E9F3Dcc); transform: scale(1.08); }
+    }
+
+    .scan-line {
+      position: absolute;
+      left: -6px;
+      right: -6px;
+      height: 2px;
+      border-radius: 2px;
+      background: linear-gradient(90deg, transparent 0%, var(--green) 50%, transparent 100%);
+      box-shadow: 0 0 10px #4e9f3daa;
+      animation: scan 2s ease-in-out infinite;
+    }
+
+    @keyframes scan {
+      0%   { top: 0%;   opacity: 0; }
+      8%   { opacity: 1; }
+      92%  { opacity: 1; }
+      100% { top: 100%; opacity: 0; }
+    }
+
+    .logo-wordmark {
+      font-size: 1.35rem;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      background: linear-gradient(135deg, #D8E9A8 0%, #4E9F3D 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .analyzing-label {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      align-items: center;
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.24em;
+      text-transform: uppercase;
+      color: var(--green);
+    }
+
+    .dots span {
+      display: inline-block;
+      opacity: 0;
+      animation: dot-blink 1.4s infinite;
+    }
+    .dots span:nth-child(2) { animation-delay: 0.2s; }
+    .dots span:nth-child(3) { animation-delay: 0.4s; }
+
+    @keyframes dot-blink {
+      0%, 80%, 100% { opacity: 0; }
+      40%            { opacity: 1; }
+    }
+
+    .analyzing-url {
+      position: relative;
+      z-index: 1;
+      font-size: 10px;
+      color: #2d4a2d;
+      max-width: 300px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      text-align: center;
+    }
+
+    /* ══════════════════════════
+       RESULT SCREEN
+    ══════════════════════════ */
+    #resultScreen {
+      display: flex;
+      flex-direction: column;
+      z-index: 1;
+      opacity: 0;
+      pointer-events: none;
+      overflow-y: auto;
+      overflow-x: hidden;
+    }
+
+    #resultScreen.visible {
+      animation: screen-enter 0.44s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+      pointer-events: all;
+    }
+
+    @keyframes screen-enter {
+      0%   { opacity: 0; transform: scale(0.94) translateY(16px); }
+      100% { opacity: 1; transform: scale(1)    translateY(0); }
+    }
+
+    /* Header */
+    .result-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 11px 14px;
+      background: #040a04;
+      border-bottom: 1px solid #0f1f0f;
+      flex-shrink: 0;
+    }
+
+    .header-logo {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+    }
+
+    .header-logo img {
+      width: 20px;
+      height: 20px;
+      object-fit: contain;
+      filter: drop-shadow(0 0 4px #4E9F3D80);
+    }
+
+    .header-logo-text {
+      font-size: 0.82rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      background: linear-gradient(135deg, #D8E9A8 0%, #4E9F3D 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .retry-btn {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      padding: 4px 11px;
+      border-radius: 999px;
+      border: 1px solid #1e5128;
+      background: transparent;
+      color: var(--green);
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .retry-btn:hover { background: #1e5128; color: var(--sage); }
+
+    /* Scrollable body */
+    .result-body {
+      flex: 1;
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+    }
+
+    /* Result card */
+    .result-card {
+      border-radius: 14px;
+      border: 1px solid var(--green-deep);
+      background: #06100a;
+      padding: 16px 14px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 8px 40px rgba(0, 0, 0, 0.65);
+    }
+
+    .result-card::after {
+      content: '';
+      position: absolute;
+      top: -40px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 220px;
+      height: 100px;
+      border-radius: 50%;
+      opacity: 0.08;
+      pointer-events: none;
+      filter: blur(28px);
+      background: var(--green);
+    }
+
+    .result-card.verdict-bad::after,
+    .result-card.verdict-error::after     { background: #ef4444; }
+    .result-card.verdict-uncertain::after { background: #eab308; }
+
+    .result-card.verdict-good {
+      border-color: #4e9f3d;
+      box-shadow: 0 8px 40px rgba(78, 159, 61, 0.18);
+    }
+    .result-card.verdict-bad,
+    .result-card.verdict-error {
+      border-color: #ef4444;
+      box-shadow: 0 8px 40px rgba(239, 68, 68, 0.16);
+    }
+    .result-card.verdict-uncertain {
+      border-color: #eab308;
+      box-shadow: 0 8px 40px rgba(234, 179, 8, 0.14);
+    }
+
+    /* Hero row — ring left, info right */
+    .result-hero {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .ring-wrap {
+      position: relative;
+      width: 90px;
+      height: 90px;
+      flex-shrink: 0;
+    }
+
+    .reliability-ring {
+      width: 100%;
+      height: 100%;
+      transform: rotate(-90deg);
+      overflow: visible;
+    }
+
+    .ring-track {
+      fill: none;
+      stroke: #0f1f0f;
+      stroke-width: 8;
+    }
+
+    .ring-progress {
+      fill: none;
+      stroke: var(--green);
+      stroke-width: 8;
+      stroke-linecap: round;
+      stroke-dasharray: 314.159;
+      stroke-dashoffset: 314.159;
+      transition: stroke-dashoffset 0.9s cubic-bezier(0.4, 0, 0.2, 1);
+      filter: drop-shadow(0 0 6px #4e9f3d90);
+    }
+
+    .result-card.verdict-bad   .ring-progress,
+    .result-card.verdict-error .ring-progress {
+      stroke: #ef4444;
+      filter: drop-shadow(0 0 6px #ef444490);
+    }
+    .result-card.verdict-uncertain .ring-progress {
+      stroke: #eab308;
+      filter: drop-shadow(0 0 6px #eab30890);
+    }
+
+    .ring-center {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .ring-pct {
+      font-size: 1.55rem;
+      font-weight: 900;
+      color: var(--sage);
+      letter-spacing: -0.04em;
+      line-height: 1;
+    }
+
+    /* Info beside ring */
+    .hero-info {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .ring-label {
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: #2d4a2d;
+    }
+
+    .pill {
+      align-self: flex-start;
+      padding: 4px 13px;
+      border-radius: 999px;
+      font-size: 10px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      font-weight: 800;
+    }
+
+    .pill.good      { background: #1e5128; color: #d8e9a8; box-shadow: 0 0 12px #4e9f3d30; }
+    .pill.bad       { background: #450a0a; color: #fecaca; box-shadow: 0 0 12px #ef444430; }
+    .pill.uncertain { background: #422006; color: #fef3c7; }
+    .pill.error     { background: #7f1d1d; color: #fee2e2; }
+
+    .summary-inline {
+      font-size: 11px;
+      color: #8aab7a;
+      line-height: 1.6;
+    }
+
+    /* Section label */
+    .section-label {
+      display: block;
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: #1e5128;
+      margin-bottom: 7px;
+    }
+
+    /* Reasons */
+    .reasons-block {
+      border-top: 1px solid #0f1f0f;
+      padding-top: 11px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .reason-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      font-size: 11px;
+      color: #4b6b4b;
+      line-height: 1.5;
+    }
+
+    .reason-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      flex-shrink: 0;
+      margin-top: 4px;
+      background: var(--green);
+      box-shadow: 0 0 5px #4e9f3d90;
+    }
+
+    .result-card.verdict-bad   .reason-dot,
+    .result-card.verdict-error .reason-dot {
+      background: #ef4444;
+      box-shadow: 0 0 5px #ef444490;
+    }
+    .result-card.verdict-uncertain .reason-dot {
+      background: #eab308;
+      box-shadow: 0 0 5px #eab30890;
+    }
+
+    /* Sources */
+    .sources-block {
+      border-top: 1px solid #0f1f0f;
+      padding-top: 11px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .sources-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+    }
+
+    .source-chip {
+      padding: 3px 9px;
+      background: #060e06;
+      border: 1px solid #1e5128;
+      border-radius: 7px;
+      font-size: 10px;
+      transition: border-color 0.2s, background 0.2s;
+    }
+
+    .source-chip:hover   { background: #0a1a0a; border-color: #4e9f3d60; }
+    .source-chip a       { color: var(--green); text-decoration: none; }
+    .source-chip a:hover { color: var(--sage); }
+
+    /* Error */
+    .error-text {
+      color: #f97373;
+      font-size: 11px;
+      text-align: center;
+      position: relative;
+      z-index: 1;
+    }
+  </style>
+</head>
+<body>
+  <div class="stage">
+
+    <!-- ANALYZING SCREEN -->
+    <div id="analyzeScreen" class="screen">
+      <div class="pulse-rings">
+        <div class="pulse-ring"></div>
+        <div class="pulse-ring"></div>
+        <div class="pulse-ring"></div>
+      </div>
+
+      <div class="analyze-logo">
+        <div class="logo-img-wrap">
+          <div class="scan-line"></div>
+          <img src="favicon.png" class="logo-lotus" alt="" />
+        </div>
+        <span class="logo-wordmark">Veritas</span>
+      </div>
+
+      <p class="analyzing-label">
+        Analyzing<span class="dots">
+          <span>.</span><span>.</span><span>.</span>
+        </span>
+      </p>
+      <p class="analyzing-url" id="analyzingUrl"></p>
+    </div>
+
+    <!-- RESULT SCREEN -->
+    <div id="resultScreen" class="screen">
+      <div class="result-header">
+        <div class="header-logo">
+          <img src="favicon.png" alt="" />
+          <span class="header-logo-text">Veritas</span>
+        </div>
+        <button class="retry-btn" id="retryBtn">↺ Re-check</button>
+      </div>
+
+      <div class="result-body">
+        <div id="resultCard" class="result-card">
+
+          <!-- Hero: ring + info side by side -->
+          <div class="result-hero">
+            <div class="ring-wrap">
+              <svg class="reliability-ring" viewBox="0 0 120 120"
+                   aria-label="Reliability score">
+                <circle class="ring-track"    cx="60" cy="60" r="50" />
+                <circle class="ring-progress" cx="60" cy="60" r="50"
+                        id="ringProgress" />
+              </svg>
+              <div class="ring-center">
+                <span class="ring-pct" id="ringPct">0</span>
+              </div>
+            </div>
+
+            <div class="hero-info">
+              <span class="ring-label">Reliability Score</span>
+              <span id="verdictPill" class="pill"></span>
+              <p id="summary" class="summary-inline"></p>
+            </div>
+          </div>
+
+          <!-- Reasons -->
+          <div id="reasonsBlock" class="reasons-block" style="display:none">
+            <span class="section-label">Key Observations</span>
+            <div id="reasonsList"></div>
+          </div>
+
+          <!-- Sources -->
+          <div id="sourcesBlock" class="sources-block" style="display:none">
+            <span class="section-label">Sources Checked</span>
+            <div id="sourcesList" class="sources-list"></div>
+          </div>
+
+          <!-- Error -->
+          <p id="errorText" class="error-text" style="display:none"></p>
+        </div>
+      </div>
+    </div>
+
+  </div>
+  <script src="popup.js"></script>
+</body>
+</html>
